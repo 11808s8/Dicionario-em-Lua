@@ -367,6 +367,8 @@ repeat 			-- loop principal do programa
 		elseif(escolha=='7') then
 			Nome = menuLeArq(esp,port,Nome)
 			abriuArq = true
+			io.output()
+			io.input()
 		end	
 			
 	
