@@ -6,8 +6,8 @@ function mostraTela(esp, port) -- Função que mostra o conteúdo na tela
 	os.execute('reset') -- limpa a tela
 	print("Contéudo do dicionário:")
 	
-	for k,v in ipairs(esp) do
-		print(v .. " - " .. port[k])
+	for k,v in ipairs(esp) do -- itera até o final do array esp, trazendo os valores de cada par do array esp
+		print(v .. " - " .. port[k]) -- Com o mesmo índice do array esp, estão ordenados os significados, facilitando a visualização.
 	end
 
 	escolha = retornaMenu()
@@ -30,21 +30,21 @@ function menuIncluirPalavra(esp,port) -- Menu relacionado a inclusão de palavra
 			print("Digite o significado (em Português) da palavra:")
 			significadoPort = io.read()
 			print("\nTem certeza que este é o significado que deseja inserir? (s/n)")
-			print(significadoPort)
+			print("\t\t" .. significadoPort)
 			certeza = string.upper(io.read())
 		until certeza == 'S'
-			insereOrdenado(esp,port,palavraEsp,significadoPort)
+			insereOrdenado(esp,port,palavraEsp,significadoPort) -- Insere ordenado a palavra em espanhol e o significado em português.
 			print("\nPronto, palavra inserida com sucesso!")
-		escolha = retornaMenu()
+		escolha = retornaMenu() -- Se não deseja retornar ao menu, realiza o processo novamente.
 	until escolha =='S'
 end
 
 
 
-function insereOrdenado(esp,port,palavraEsp,significadoPort)
+function insereOrdenado(esp,port,palavraEsp,significadoPort) -- Inserção ordenada. Não faz a verificação se a palavra já existe, apenas insere.
 	aux =  string.lower(palavraEsp)
 	tamanhoTabela = #esp
-	if(tamanhoTabela==0)then
+	if(tamanhoTabela==0)then -- Se a lista está vazia, insere no primeiro índice
 		esp[1] = palavraEsp
 		port[1] = significadoPort
 		return
@@ -76,7 +76,7 @@ function pesquisaPalavra(esp,port) -- Função que chama a função genérica de
 		os.execute('reset')
 		print("Digite qual palavra você gostaria de pesquisar:")
 		palavra = io.read()
-		pesquisaGenerica(esp,port,'P', palavra)
+		pesquisaGenerica(esp,port,'P', palavra) -- Se não encontra, retorna mensagem de erro na própria função
 		pesquisa = retornaMenu()
 	until pesquisa=='S'
 	
@@ -89,7 +89,7 @@ function exclui(esp,port) -- Função que chama a função genérica de pesquisa
 		os.execute('reset')
 		print("Digite qual palavra você gostaria de excluir:")
 		palavra = io.read()
-		pesquisaGenerica(esp,port,'E', palavra)	
+		pesquisaGenerica(esp,port,'E', palavra)	-- Se não encontra, retorna mensagem de erro na própria função
 		pesquisa = retornaMenu()
 	until pesquisa=='S'
 end
@@ -100,7 +100,7 @@ function alterarSignificado(esp,port) -- Função que chama a função genérica
 		os.execute('reset')
 		print("Digite qual palavra você gostaria de alterar o significado:")
 		palavra = io.read()
-		pesquisaGenerica(esp,port,'A', palavra)	
+		pesquisaGenerica(esp,port,'A', palavra)	-- Se não encontra a palavra, retorna mensagem de erro na própria função
 		pesquisa = retornaMenu()
 	until pesquisa=='S'	
 
@@ -110,22 +110,26 @@ function pesquisaGenerica(esp,port,PEA, palavra) -- Função com a Parte genéri
 	inicialP = string.sub(palavra,1,1)	 -- Se ela for encontrada, senão, com todas as três opções, retorna que não encontrou e envia para as funções que a chamaram.
 		tamTabela = #esp
 		i = 1
-		while((string.sub(esp[i],1,1) ~= inicialP) and i<tamTabela) do
+		if tamTabela == 0 then -- Se o dicionário está vazio, não prosseguir com operações
+			print("Dicionário vazio! Favor insira alguma palavra para poder \nprosseguir com as operações desta opção. Obrigado!") 
+			return
+		end
+		while(i<tamTabela and (string.sub(esp[i],1,1) ~= inicialP)) do -- Itera até encontrar inicial ou chegar ao final da tabela
 			i = i + 1
 		end
-		if(string.sub(esp[i],1,1) == inicialP) then
+		if(string.sub(esp[i],1,1) == inicialP) then -- Se "i" parou na inicial correta, prossegue, senão, exibe mensagem de erro.
 			while((esp[i]~= palavra) and i<=tamTabela) do
 				i = i + 1
 			end
-			if(esp[i]==palavra) then
-				if(PEA=='P') then
+			if(esp[i]==palavra) then -- Se encontrou a palavra, executa.
+				if(PEA=='P') then -- Se for apenas pesquisa...
 					print("\tPalavra em espanhol:" .. esp[i] .. "\n\tSignificado em Português:" .. port[i])
 					print()
-				elseif(PEA=='E') then
+				elseif(PEA=='E') then -- Se for exclusão de palavra...
 					table.remove(esp,i)
 					table.remove(port,i)
 					print("Pronto, palavra e significado removidos!")
-				else
+				else		      -- Senão, é alteração de significado.
 					local significado
 					repeat
 						print("Palavra encontrada. Seu significado atual é\n\t" .. port[i])
@@ -134,12 +138,12 @@ function pesquisaGenerica(esp,port,PEA, palavra) -- Função com a Parte genéri
 						print("Tem certeza que esse é o significado que deseja inserir?(s/n)")
 						local certeza = io.read()
 					until certeza == 's'
-					port[i] = significado
+					port[i] = significado -- Sobrescreve o significado já existente com o que acabou de ser inserido
 					print()
 					print("Pronto, significado alterado!")
 					print()
 				end
-			else
+			else -- Senão, retorna que não encontrou.
 				print("Palavra não encontrada!")
 			end
 		else
@@ -150,33 +154,39 @@ end
 function exportaconteudo(esp,port,lerCriar,Nome)	-- Função que exporta o conteúdo para um arquivo .csv
 	os.execute('reset') -- limpa a tela
 	local escolha = '0', nome	
-	if lerCriar=='l' then
-		print("Desejas gravar o conteúdo no mesmo arquivo que está aberto? (s/n)")
+	local temp = io.output()	-- atribui a uma variável o output padrão, que é o stdin
+	if lerCriar=='l' then		-- verifica se o usuário já está lendo de outro arquivo
+		print("Desejas gravar o conteúdo no mesmo arquivo que está aberto? (s/n)") -- Se arquivo já está aberto, pergunta.
 		escolha = string.lower(io.read())
 	end
 	
 	if escolha~='s' then	
-		print("Digite o nome do arquivo que deseja criar:")
+		print("Digite o nome do arquivo que deseja criar (Por favor omita o .csv pois ele será incluso automaticamente):")
 		Nome = io.read()
 	end
-	Nome = Nome .. '.csv'
+	Nome = Nome .. '.csv'			-- concatena .csv no nome do arquivo
 	local file = io.open(Nome,"w")		-- Sempre irá limpar o arquivo e adicionar as palavras novas/mesmas ordenadamente
-	io.output(file)
+	io.output(file)				-- Coloca como output o arquivo lido
 	
 	local linha
 	local i
 	i = 1
 	local tamTabela
 	tamTabela = #esp
-	print(i)
 	while i<=tamTabela do
 		linha = esp[i] .. "," .. port[i]
 		io.write(linha .. "\n")
 		i = i+1
 	end
-	io.close(file)
-	io.output()
-	print("Pronto, arquivo " .. Nome .. " criado. Retornando ao menu. (enter)")
+	io.close(file) -- fecha o arquivo
+	io.output(temp) -- seta o output novamente como o padrão
+	io.write("\nPronto, arquivo " .. Nome )
+	if escolha ~= 's' then
+	 	io.write(" criado.")
+	else
+		io.write(" atualizado.")
+	end
+	io.write("Retornando ao menu. (enter)")
 	io.read()
 	return Nome	-- Retorna o nome com .csv concatenado
 end
@@ -184,7 +194,8 @@ end
 function leArq(esp,port,Nome)
 
 	local aux, linha, tamLinha, i ,flag, palavraEsp,significadoPort, file, c
-	file =  assert(io.open(Nome .. ".csv","r"))     -- Se não encontra o arquivo, retorna erro.
+	
+	file =  assert(io.open(Nome .. ".csv","r"))     -- Se não encontra o arquivo, retorna erro e o programa fecha.
 		for linha in file:lines() do			-- Para cada linha, fará o tratamento.
 			
 			aux = ""
@@ -202,52 +213,28 @@ function leArq(esp,port,Nome)
 				end												      -- ||
 																      -- ||
 															 	      -- ||
-				aux = aux .. c											      -- ||
+				aux = aux .. c			-- Concatena a string auxiliar com o caractere que acabou de ler      -- ||
 				i = i + 1											      -- ||
 			end													      -- \/
-			if(flag~=1) then									-- Não deixa entrar nesse loop, fazendo-o passar para a próxima linha (caso tenha espaço no 															--	arquivo)
+			if(flag~=1) then						-- Não deixa entrar nesse loop, fazendo-o passar para a próxima linha (caso tenha espaço no 												--	arquivo)
 				i = i+1
-				palavraEsp = aux
-				aux = ""
+				palavraEsp = aux -- Copia a palavra em espanhol para a variável que será inserida na função insere Ordenado
+				aux = "" -- esvazia a string aux
 			
-				while i<=tamLinha do
-					aux = aux .. string.sub(linha,i,i)
+				while i<=tamLinha do -- copia o conteúdo enquanto i for menor que o tamanho final da linha.
+					aux = aux .. string.sub(linha,i,i) -- copia caracter por caracter
 					i = i +1
 				end
-				significadoPort = aux
+				significadoPort = aux -- copia o significado de aux para a variável que será inserida na função insere Ordenado
 
-				insereOrdenado(esp,port,palavraEsp,significadoPort)
+				insereOrdenado(esp,port,palavraEsp,significadoPort) -- Chama a função Insere Ordenado
 
 			end
 		end
-		
-		--[[local lower1, lower2
-		i=1
-		while i<contadorPalavras do
-			lower1 = string.lower(esp[i]) -- Para comparar ambas as palavras são colocadas em lowercase, pois, sem isso, tinha um comportamento estranho
-			while j<contadorPalavras  do
-				lower2 = string.lower(esp[j])
-
-				if(lower1<lower2) then -- Ordena a tabela de palavras em esp(anhol) e o significado na tabela port(uguês); Mantém seus índices iguais
-					aux = esp[i]											-- Para manter linkado palavra e significado
-					esp[i] = esp[j]
-					esp[j] = aux
-
-					aux = port[i]
-					port[i]	= port[j]
-					port[j] = aux
-				end
-				j = j + 1
-			end
-		i = i + 1
-		j = 1
-		end--]]
-
-
 
 	
 	io.close(file)					-- Fecha o arquivo, pois já leu as palavras e colocou-as nas tabelas.
-	return true
+	return true					-- Retorna verdadeiro pois conseguiu abrir
 
 end
 
@@ -270,12 +257,26 @@ function menuLeArq(esp,port,Nome)
 		print("Tem certeza de que esse é o nome do arquivo?(s/n)")
 		certeza = string.lower(io.read())
 	until certeza == 's'
+
+
+	local i, tamTabela
+	i = 1
+	tamTabela = #esp
+	while i<=tamTabela do -- Esvazia as listas de palavras e significados antes de ler.
+		esp[i] = nil
+		port[i] = nil
+		i = i + 1
+	end
+	
 	leArq(esp,port,Nome)
 	
 	return Nome
 
 end
 
+
+local port = {}
+local esp = {}
 
 								--- Corpo principal do programa ---
 
@@ -303,8 +304,7 @@ repeat 			-- loop principal do programa
 
 	
 	
-	local port = {}
-	local esp = {}
+	
 	local flag
 	local contadorPalavras = 0
 	local j=1
@@ -362,13 +362,13 @@ repeat 			-- loop principal do programa
 			mostraTela(esp, port)
 		elseif(escolha=='6') then
 			Nome = exportaconteudo(esp,port,lerCriar,Nome)
+			lerCriar = 'l'
 			voltou = true
 			abriuArq = true
 		elseif(escolha=='7') then
-			Nome = menuLeArq(esp,port,Nome)
+			Nome = menuLeArq(esp,port,Nome,lerCriar)
+			lerCriar = 'l'
 			abriuArq = true
-			io.output()
-			io.input()
 		end	
 			
 	
