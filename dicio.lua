@@ -369,6 +369,7 @@ repeat 			-- loop principal do programa
 			Nome = menuLeArq(esp,port,Nome,lerCriar)
 			lerCriar = 'l'
 			abriuArq = true
+			voltou = false
 		end	
 			
 	
